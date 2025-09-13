@@ -8,7 +8,11 @@ end
 
 local is_cmake_installed, cmake = pcall(require, "cmake")
 if not is_cmake_installed then
-    error(string.format("%s plugin requires cmake.nvim plugin", PLUGIN_NAME))
+    error(string.format("%s plugin requires thefoxery/cmake.nvim plugin", PLUGIN_NAME))
+end
+
+if not cmake.is_setup() then
+    error(string.format("cmake plugin is not set up"))
 end
 
 local pickers = require("telescope.pickers")
@@ -17,10 +21,16 @@ local conf = require("telescope.config").values
 local actions = require("telescope.actions")
 local action_state = require("telescope.actions.state")
 
-local state = require("cmake").state
-
 local select_build_type = function()
     local configurations = { "MinSizeRel", "Debug", "Release", "RelWithDebInfo" }
+
+    local default_index = 0
+    for index, value in ipairs(configurations) do
+        if value == cmake.get_build_type() then
+            default_index = index
+            break
+        end
+    end
 
     pickers.new({}, {
         prompt_title = "Select Build Type",
@@ -33,15 +43,26 @@ local select_build_type = function()
                 local selection = action_state.get_selected_entry()
                 actions.close(prompt_bufnr)
                 selection = vim.trim(selection[1])
-                state.set_build_type(selection)
+                cmake.set_build_type(selection)
                 print(string.format("build type set to '%s'", selection))
             end)
             return true
         end,
+        default_selection_index = default_index,
     }):find()
 end
 
 local select_build_target = function()
+    local build_target_names = cmake.get_build_target_names()
+
+    local default_index = 0
+    for index, value in ipairs(build_target_names) do
+        if value == cmake.get_build_target() then
+            default_index = index
+            break
+        end
+    end
+
     pickers.new({}, {
         prompt_title = "Select Build Target",
         finder = finders.new_table {
@@ -53,11 +74,12 @@ local select_build_target = function()
                 local selection = action_state.get_selected_entry()
                 actions.close(prompt_bufnr)
                 selection = vim.trim(selection[1])
-                state.set_build_target(selection)
+                cmake.set_build_target(selection)
                 print(string.format("build target set to '%s'", selection))
             end)
             return true
         end,
+        default_selection_index = default_index,
     }):find()
 end
 
