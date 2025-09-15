@@ -5,8 +5,17 @@ Provides telescope pickers for selecting:
 - build type (debug, release etc)
 - build target
 
-# dependencies
+# installation
 
-- telescope (https://github.com/nvim-telescope/telescope.nvim)
-- cmake plugin (https://github.com/thefoxery/cmake.nvim)
+```
+# lazy
 
+{
+    "thefoxery/telescope-cmake.nvim",
+    dependencies = {
+        "nvim-telescope/telescope.nvim",
+        "thefoxery/cmake.nvim",
+    },
+}
+
+```
