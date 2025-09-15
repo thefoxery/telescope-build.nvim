@@ -37,7 +37,6 @@ local function setup(user_opts)
     end
 end
 
-
 local pickers = require("telescope.pickers")
 local finders = require("telescope.finders")
 local conf = require("telescope.config").values
@@ -45,8 +44,7 @@ local actions = require("telescope.actions")
 local action_state = require("telescope.actions.state")
 
 local select_build_type = function()
-    -- TODO: get build types from cmake.get_build_types()
-    local configurations = { "MinSizeRel", "Debug", "Release", "RelWithDebInfo" }
+    local configurations = cmake.get_build_types()
 
     local default_index = 0
     for index, value in ipairs(configurations) do
