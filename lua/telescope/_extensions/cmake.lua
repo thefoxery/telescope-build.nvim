@@ -15,6 +15,29 @@ if not cmake.is_setup() then
     error(string.format("cmake plugin is not set up"))
 end
 
+local function resolve(opt)
+    if type(opt) == "function" then
+        return opt()
+    else
+        return opt
+    end
+end
+
+local default_opts = {
+}
+
+local opts = {
+}
+
+local function setup(user_opts)
+    opts.notifications = resolve(user_opts.notifications) or default_opts.notifications or {}
+
+    for notification, enabled in pairs(opts.notifications) do
+        cmake.set_notification_enabled(notification, enabled)
+    end
+end
+
+
 local pickers = require("telescope.pickers")
 local finders = require("telescope.finders")
 local conf = require("telescope.config").values
@@ -84,6 +107,7 @@ end
 
 return telescope.register_extension {
     exports = {
+        setup = setup,
         select_build_type = select_build_type,
         select_build_target = select_build_target,
     },
