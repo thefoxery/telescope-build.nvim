@@ -22,6 +22,7 @@ local actions = require("telescope.actions")
 local action_state = require("telescope.actions.state")
 
 local select_build_type = function()
+    -- TODO: get build types from cmake.get_build_types()
     local configurations = { "MinSizeRel", "Debug", "Release", "RelWithDebInfo" }
 
     local default_index = 0
@@ -41,10 +42,9 @@ local select_build_type = function()
         attach_mappings = function(prompt_bufnr, map)
             actions.select_default:replace(function()
                 local selection = action_state.get_selected_entry()
-                actions.close(prompt_bufnr)
                 selection = vim.trim(selection[1])
                 cmake.set_build_type(selection)
-                print(string.format("build type set to '%s'", selection))
+                actions.close(prompt_bufnr)
             end)
             return true
         end,
@@ -72,10 +72,9 @@ local select_build_target = function()
         attach_mappings = function(prompt_bufnr, map)
             actions.select_default:replace(function()
                 local selection = action_state.get_selected_entry()
-                actions.close(prompt_bufnr)
                 selection = vim.trim(selection[1])
                 cmake.set_build_target(selection)
-                print(string.format("build target set to '%s'", selection))
+                actions.close(prompt_bufnr)
             end)
             return true
         end,
