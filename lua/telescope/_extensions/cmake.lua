@@ -1,18 +1,9 @@
 
-local PLUGIN_NAME = "telescope-cmake"
+local PLUGIN_NAME = "telescope-build"
 
 local is_telescope_installed, telescope = pcall(require, "telescope")
 if not is_telescope_installed then
     error(string.format("%s plugin requires Telescope plugin", PLUGIN_NAME))
-end
-
-local is_cmake_installed, cmake = pcall(require, "cmake")
-if not is_cmake_installed then
-    error(string.format("%s plugin requires thefoxery/cmake.nvim plugin", PLUGIN_NAME))
-end
-
-if not cmake.is_setup() then
-    error(string.format("cmake plugin is not set up"))
 end
 
 local function resolve(opt)
@@ -23,17 +14,33 @@ local function resolve(opt)
     end
 end
 
+local dummy_provider = function() return {} end
+local dummy_callback = function(_) end
+
 local default_opts = {
+    build_system = {
+        get_build_types = dummy_provider,
+        get_build_type = dummy_provider,
+        get_build_targets = dummy_provider,
+        get_build_target = dummy_provider,
+        set_build_type = dummy_callback,
+        set_build_target = dummy_callback,
+    }
 }
 
 local opts = {
 }
 
 local function setup(user_opts)
-    opts.notifications = resolve(user_opts.notifications) or default_opts.notifications or {}
+    user_opts = user_opts or {}
 
-    for notification, enabled in pairs(opts.notifications) do
-        cmake.set_notification_enabled(notification, enabled)
+    opts = vim.tbl_deep_extend("force", {}, default_opts)
+    opts.build_system = vim.tbl_deep_extend("force", {}, default_opts.build_system, resolve(user_opts.build_system) or {})
+
+    for name, _ in pairs(default_opts.build_system) do
+        if opts.build_system[name] == nil or opts.build_system[name] == dummy_provider or opts.build_system[name] == dummy_callback then
+            vim.notify(string.format("[%s] Configured build system missing function '%s'", PLUGIN_NAME, name), vim.log.levels.WARN)
+        end
     end
 end
 
@@ -44,11 +51,12 @@ local actions = require("telescope.actions")
 local action_state = require("telescope.actions.state")
 
 local select_build_type = function()
-    local configurations = cmake.get_build_types()
+    local configurations = opts.build_system.get_build_types()
 
     local default_index = 0
+    local build_type = opts.build_system.get_build_type()
     for index, value in ipairs(configurations) do
-        if value == cmake.get_build_type() then
+        if value == build_type then
             default_index = index
             break
         end
@@ -64,8 +72,8 @@ local select_build_type = function()
             actions.select_default:replace(function()
                 local selection = action_state.get_selected_entry()
                 selection = vim.trim(selection[1])
-                cmake.set_build_type(selection)
                 actions.close(prompt_bufnr)
+                opts.build_system.set_build_type(selection)
             end)
             return true
         end,
@@ -74,11 +82,11 @@ local select_build_type = function()
 end
 
 local select_build_target = function()
-    local build_target_names = cmake.get_build_target_names()
+    local build_targets = opts.build_system.get_build_targets()
 
     local default_index = 0
-    for index, value in ipairs(build_target_names) do
-        if value == cmake.get_build_target() then
+    for index, build_target in ipairs(build_targets) do
+        if build_target == opts.build_system.get_build_target() then
             default_index = index
             break
         end
@@ -87,15 +95,15 @@ local select_build_target = function()
     pickers.new({}, {
         prompt_title = "Select Build Target",
         finder = finders.new_table {
-            results = cmake.get_build_target_names(),
+            results = build_targets,
         },
         sorter = conf.generic_sorter({}),
         attach_mappings = function(prompt_bufnr, map)
             actions.select_default:replace(function()
                 local selection = action_state.get_selected_entry()
                 selection = vim.trim(selection[1])
-                cmake.set_build_target(selection)
                 actions.close(prompt_bufnr)
+                opts.build_system.set_build_target(selection)
             end)
             return true
         end,
