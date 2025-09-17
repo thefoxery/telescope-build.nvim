@@ -1,16 +1,7 @@
 
-# telescope-cmake
+# telescope-build
 
-Part of my ecosystem of CMake plugins for neovim
-- [cmake.nvim](https://github.com/thefoxery/cmake.nvim) (main plugin, required)
-- [telescope-cmake.nvim](https://github.com/thefoxery/telescope-cmake.nvim)
-- [lualine-cmake.nvim](https://github.com/thefoxery/lualine-cmake.nvim)
-
-Use Telescope to quickly change configuration/target for main cmake plugin
-
-Provides telescope pickers for selecting:
-- build type (debug, release etc)
-- build target
+Use Telescope to quickly change configuration/target for your build system
 
 # installation
 
@@ -18,19 +9,43 @@ Provides telescope pickers for selecting:
 # lazy
 
 {
-    "thefoxery/telescope-cmake.nvim",
+    "thefoxery/telescope-build.nvim",
     dependencies = {
         "nvim-telescope/telescope.nvim",
-        "thefoxery/cmake.nvim",
     },
 }
 
-# in telescope setup
+# after telescope setup
+require("telescope").load_extension("build")
 
-require("telescope").load_extension("cmake")
+# example setup using 'thefoxery/cmake.nvim' plugin
+require("telescope").extensions.build.setup({
+    build_system = require("cmake"),
+})
 
-require("telescope").extensions.cmake.setup({}) # optional
-
+# example with custom build system
+require("telescope").extensions.build.setup({
+    build_system = {
+        get_build_targets = function()
+            return { "application", "editor" }
+        end,
+        get_build_target = function()
+            return "current_build_target"
+        end,
+        get_build_types = function()
+            return { "debug", "release" }
+        end,
+        get_build_type = function()
+            return "current_build_target"
+        end,
+        set_build_type = function(build_type)
+            -- set state in build system
+        end,
+        set_build_target = function(build_target)
+            -- set state in build system
+        end,
+    }
+})
 ```
 
 # usage
@@ -38,10 +53,7 @@ require("telescope").extensions.cmake.setup({}) # optional
 ```
 # provides the following Telescope commands
 
-:Telescope cmake select_build_target
-:Telescope cmake select_build_type
-
+:Telescope build select_build_target
+:Telescope build select_build_type
 ```
-
-Build types are provided by the CMake plugin.
 
