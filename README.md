@@ -14,7 +14,11 @@ Use Telescope to quickly change configuration/target for your build system
         "nvim-telescope/telescope.nvim",
     },
 }
+```
 
+# configuration
+
+```
 # after telescope setup
 require("telescope").load_extension("build")
 
