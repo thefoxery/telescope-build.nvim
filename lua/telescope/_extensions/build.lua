@@ -14,15 +14,16 @@ local function resolve(opt)
     end
 end
 
-local dummy_provider = function() return {} end
+local dummy_tbl_provider = function() return {} end
+local dummy_str_provider = function() return "" end
 local dummy_callback = function(_) end
 
 local default_opts = {
     build_system = {
-        get_build_types = dummy_provider,
-        get_build_type = dummy_provider,
-        get_build_targets = dummy_provider,
-        get_build_target = dummy_provider,
+        get_build_types = dummy_tbl_provider,
+        get_build_type = dummy_str_provider,
+        get_build_targets = dummy_tbl_provider,
+        get_build_target = dummy_str_provider,
         set_build_type = dummy_callback,
         set_build_target = dummy_callback,
     }
@@ -38,7 +39,7 @@ local function setup(user_opts)
     opts.build_system = vim.tbl_deep_extend("force", {}, default_opts.build_system, resolve(user_opts.build_system) or {})
 
     for name, _ in pairs(default_opts.build_system) do
-        if opts.build_system[name] == nil or opts.build_system[name] == dummy_provider or opts.build_system[name] == dummy_callback then
+        if opts.build_system[name] == nil or opts.build_system[name] == dummy_tbl_provider or opts.build_system[name] == dummy_callback then
             vim.notify(string.format("[%s] Configured build system missing function '%s'", PLUGIN_NAME, name), vim.log.levels.WARN)
         end
     end
